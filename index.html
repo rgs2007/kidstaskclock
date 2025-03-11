@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Kids Task Clock</title>
+	<link rel="stylesheet" href="body.css">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+</head>
+<body>
+	<div id="clockContainer">
+		 <!-- Removed circular clock view -->
+		<div id="progressBarClockView" class="clock-view active">
+			<div class="progress-container">
+				<!-- The progress bar and hour markers will be inserted here by JS -->
+				<div id="hourMarkers"></div>
+				<div id="statusBar"></div>
+				<div id="currentTimeMarker"></div>
+			</div>
+		</div>
+		
+		 <!-- New current task label at the top -->
+		<div id="currentTaskLabel" class="draggable time-display" style="top: 30px; left: 50%; transform: translateX(-50%);">
+			<!-- Initial text placeholder -->
+			Current Task
+		</div>
+		
+		<!-- Common elements -->
+		<div id="digitalClock" class="draggable time-display">12:00 PM</div>
+		<!-- Removed current task indicator -->
+	</div>
+
+	<div id="controlPanel">
+		<button id="settingsButton" class="control-button" aria-label="Settings">⚙</button>
+		<button id="fullscreenButton" class="control-button" aria-label="Fullscreen">⤢</button>
+	</div>
+
+	<div id="settingsModal">
+		<div class="modalContent">
+			<div class="modalHeader">
+				<h3>Customize Task Schedule</h3>
+				<span class="close">&times;</span>
+			</div>
+			<div class="modalBody">
+				<p>Set duration for each activity (in minutes)</p>
+				<div id="tasksInputs"></div>
+			</div>
+			<div class="modalFooter">
+				<button id="saveSettings" class="neon-button">Save</button>
+			</div>
+		</div>
+	</div>
+	
+	<script src="script.js"></script>
+	<script>
+		// Modal controls
+		document.getElementById('settingsButton').addEventListener('click', function(){
+			document.getElementById('settingsModal').style.display = 'block';
+		});
+		
+		document.querySelector('#settingsModal .close').addEventListener('click', function(){
+			document.getElementById('settingsModal').style.display = 'none';
+		});
+		
+		document.getElementById('saveSettings').addEventListener('click', function(){
+			document.getElementById('settingsModal').style.display = 'none';
+		});
+		
+		window.addEventListener('click', function(event){
+			if(event.target == document.getElementById('settingsModal')){
+				document.getElementById('settingsModal').style.display = 'none';
+			}
+		});
+		
+		// Fullscreen toggle
+		document.getElementById('fullscreenButton').addEventListener('click', function(){
+			if (!document.fullscreenElement) {
+				document.documentElement.requestFullscreen().catch(err => {
+					console.log(`Error: ${err.message}`);
+				});
+			} else {
+				document.exitFullscreen();
+			}
+		});
+
+		// Make elements draggable
+		document.addEventListener("DOMContentLoaded", function() {
+			// Initialize draggable functionality
+			makeDraggable(document.getElementById("digitalClock"));
+			
+			// Draggable function
+			function makeDraggable(element) {
+				let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+				
+				element.onmousedown = dragMouseDown;
+				
+				function dragMouseDown(e) {
+					e.preventDefault();
+					// Get cursor position at start
+					pos3 = e.clientX;
+					pos4 = e.clientY;
+					document.onmouseup = closeDragElement;
+					document.onmousemove = elementDrag;
+				}
+				
+				function elementDrag(e) {
+					e.preventDefault();
+					// Calculate new position
+					pos1 = pos3 - e.clientX;
+					pos2 = pos4 - e.clientY;
+					pos3 = e.clientX;
+					pos4 = e.clientY;
+					// Set element's new position
+					element.style.top = (element.offsetTop - pos2) + "px";
+					element.style.left = (element.offsetLeft - pos1) + "px";
+					// Update "positioned" class to maintain position after updates
+					element.classList.add("positioned");
+				}
+				
+				function closeDragElement() {
+					document.onmouseup = null;
+					document.onmousemove = null;
+				}
+			}
+
+			// Apply draggable to any dynamically created elements with class "draggable"
+			window.applyDraggable = function(selector) {
+				document.querySelectorAll(selector).forEach(el => {
+					if (!el.hasAttribute("data-draggable")) {
+						makeDraggable(el);
+						el.setAttribute("data-draggable", "true");
+					}
+				});
+			};
+		});
+
+		// View toggle button
+		document.getElementById('viewToggleButton').addEventListener('click', function() {
+			const circularView = document.getElementById('circularClockView');
+			const progressView = document.getElementById('progressBarClockView');
+			
+			circularView.classList.toggle('active');
+			progressView.classList.toggle('active');
+			
+			// Force layout update
+			if (window.updateClockLayout) {
+				window.updateClockLayout();
+			}
+		});
+	</script>
+</body>
+</html>
