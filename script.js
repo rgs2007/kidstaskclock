@@ -1,6 +1,6 @@
 // Default tasks
 let tasks = [
-	{ name: "Sleep", duration: 480, icon: "😴" },
+	{ name: "Sleep", duration: 200, icon: "😴" },
 	{ name: "Dress", duration: 30, icon: "👚" },
 	{ name: "Brush", duration: 15, icon: "🪥" },
 	{ name: "Comb Hair", duration: 15, icon: "💇" },
@@ -10,7 +10,8 @@ let tasks = [
 	{ name: "Dinner", duration: 30, icon: "🍽️" },
 	{ name: "Quiet Time", duration: 60, icon: "😌" },
 	{ name: "Shower", duration: 15, icon: "🚿" },
-	{ name: "Book", duration: 45, icon: "📚" }
+	{ name: "Book", duration: 45, icon: "📚" },
+	{ name: "Sleep", duration: 280, icon: "😴" },
 ];
 
 const pastelColors = [
