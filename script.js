@@ -11,7 +11,7 @@ let tasks = [
 	{ name: "Quiet Time", duration: 60, icon: "😌" },
 	{ name: "Shower", duration: 15, icon: "🚿" },
 	{ name: "Book", duration: 45, icon: "📚" },
-	{ name: "Sleep", duration: 280, icon: "😴" },
+	{ name: "Sleep", duration: 280, icon: "😴" }
 ];
 
 const pastelColors = [
