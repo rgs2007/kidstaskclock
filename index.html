@@ -30,7 +30,7 @@
 	</div>
 
 	<div id="controlPanel">
-		<button id="settingsButton" class="control-button" aria-label="Settings">⚙</button>
+		<button id="settingsButton" class="control-button" aria-label="Manage Tasks">📋</button>
 		<button id="fullscreenButton" class="control-button" aria-label="Fullscreen">⤢</button>
 	</div>
 
@@ -62,6 +62,7 @@
 		});
 		
 		document.getElementById('saveSettings').addEventListener('click', function(){
+			saveTasksToStorage(); // Save tasks to localStorage when clicking Save button
 			document.getElementById('settingsModal').style.display = 'none';
 		});
 		
@@ -84,8 +85,9 @@
 
 		// Make elements draggable
 		document.addEventListener("DOMContentLoaded", function() {
-			// Initialize draggable functionality
+			// Initialize draggable functionality for both elements
 			makeDraggable(document.getElementById("digitalClock"));
+			makeDraggable(document.getElementById("currentTaskLabel"));
 			
 			// Draggable function
 			function makeDraggable(element) {
@@ -130,22 +132,11 @@
 						el.setAttribute("data-draggable", "true");
 					}
 				});
+				// Make sure the currentTaskLabel is initialized immediately
+				updateCurrentTaskLabel();
 			};
 		});
 
-		// View toggle button
-		document.getElementById('viewToggleButton').addEventListener('click', function() {
-			const circularView = document.getElementById('circularClockView');
-			const progressView = document.getElementById('progressBarClockView');
-			
-			circularView.classList.toggle('active');
-			progressView.classList.toggle('active');
-			
-			// Force layout update
-			if (window.updateClockLayout) {
-				window.updateClockLayout();
-			}
-		});
 	</script>
 </body>
 </html>

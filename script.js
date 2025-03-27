@@ -1,18 +1,43 @@
-// Default tasks
+// Default tasks - now using startHour instead of duration
 let tasks = [
-	{ name: "Sleep", duration: 200, icon: "😴" },
-	{ name: "Dress", duration: 30, icon: "👚" },
-	{ name: "Brush", duration: 15, icon: "🪥" },
-	{ name: "Comb Hair", duration: 15, icon: "💇" },
-	{ name: "Breakfast", duration: 30, icon: "🥞" },
-	{ name: "School", duration: 360, icon: "🏫" },
-	{ name: "Play Time", duration: 60, icon: "🎮" },
-	{ name: "Dinner", duration: 30, icon: "🍽️" },
-	{ name: "Quiet Time", duration: 60, icon: "😌" },
-	{ name: "Shower", duration: 15, icon: "🚿" },
-	{ name: "Book", duration: 45, icon: "📚" },
-	{ name: "Sleep", duration: 280, icon: "😴" }
+	{ name: "Sleep", startHour: 21, icon: "😴" },    // 9:00 PM
+	{ name: "Dress", startHour: 7, icon: "👚" },     // 7:00 AM
+	{ name: "Brush", startHour: 7.25, icon: "🪥" },  // 7:15 AM
+	{ name: "Comb Hair", startHour: 7.5, icon: "💇" }, // 7:30 AM
+	{ name: "Breakfast", startHour: 7.75, icon: "🥞" }, // 7:45 AM
+	{ name: "School", startHour: 8, icon: "🏫" },    // 8:00 AM
+	{ name: "Play Time", startHour: 15, icon: "🎮" }, // 3:00 PM
+	{ name: "Dinner", startHour: 18, icon: "🍽️" },   // 6:00 PM
+	{ name: "Quiet Time", startHour: 19, icon: "😌" }, // 7:00 PM
+	{ name: "Shower", startHour: 20, icon: "🚿" },   // 8:00 PM
+	{ name: "Book", startHour: 20.5, icon: "📚" }    // 8:30 PM
 ];
+
+// Load tasks from localStorage if they exist
+function loadTasksFromStorage() {
+    const storedTasks = localStorage.getItem('kidsTasks');
+    if (storedTasks) {
+        try {
+            tasks = JSON.parse(storedTasks);
+            console.log('Tasks loaded from localStorage');
+        } catch (e) {
+            console.error('Error loading tasks from localStorage:', e);
+        }
+    }
+}
+
+// Save tasks to localStorage
+function saveTasksToStorage() {
+    try {
+        localStorage.setItem('kidsTasks', JSON.stringify(tasks));
+        console.log('Tasks saved to localStorage');
+    } catch (e) {
+        console.error('Error saving tasks to localStorage:', e);
+    }
+}
+
+// Call loadTasksFromStorage on initialization
+loadTasksFromStorage();
 
 const pastelColors = [
 	"#FFB3BA", "#FFDFBA", "#FFFFBA", "#BAFFC9", "#BAE1FF",
@@ -29,34 +54,36 @@ const enhancedColors = [
 
 // DOM Elements - simplified references
 const digitalClockEl = document.getElementById("digitalClock");
-// Remove references to the removed current task element
 const progressContainer = document.querySelector('.progress-container');
 
 // Use total day minutes
 const dayMinutes = 1440; 
 
-// Helper: calculate total task minutes
-function getTotalTaskMinutes() {
-	return tasks.reduce((acc, t) => acc + Number(t.duration), 0);
+// Helper function to convert startHour to minutes
+function hourToMinutes(hour) {
+    return Math.floor(hour) * 60 + Math.round((hour % 1) * 60);
 }
 
-// Configure school start time in HH:MM format (e.g., "07:50")
-let schoolStartTime = "07:50";
+// Helper function to convert a time in minutes to a formatted time string (e.g., "07:30 AM")
+function formatTime(totalMinutes) {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    const period = hours >= 12 ? "PM" : "AM";
+    const displayHours = hours % 12 === 0 ? 12 : hours % 12;
+    return `${displayHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+}
 
-// Calculate time offset to align tasks schedule (modified)
-function calculateTimeOffset() {
-    const [startHour, startMinute] = schoolStartTime.split(':').map(Number);
-    let schoolStartMin = startHour * 60 + startMinute;
-    let offset = 0;
-    const schoolIndex = tasks.findIndex(t => t.name === "School");
-    if (schoolIndex !== -1) {
-        let timeBeforeSchool = 0;
-        for (let i = 0; i < schoolIndex; i++) {
-            timeBeforeSchool += tasks[i].duration;
-        }
-        offset = schoolStartMin - timeBeforeSchool;
-    }
-    return offset;
+// New helper function to format time as HH:MM (24-hour format)
+function formatTime24(totalMinutes) {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+}
+
+// New helper function to convert HH:MM format to decimal hours
+function timeStringToHours(timeStr) {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours + (minutes / 60);
 }
 
 // Add helper function to format full date and time
@@ -69,55 +96,107 @@ function formatFullDateTime(date) {
     return date.toLocaleString('en-US', options);
 }
 
-// Build the status bar segments with labels for each task; free segments get no label.
+// Build the status bar segments with labels for each task
 function buildStatusBar() {
     const statusBar = document.getElementById("statusBar");
     statusBar.innerHTML = '';
     
-    const totalTaskMinutes = getTotalTaskMinutes();
-    const offset = calculateTimeOffset();
-    // Allocate free time (offset if positive, plus any remaining minutes) to the sleep task (index 0)
-    const extra = dayMinutes - ((offset > 0 ? offset : 0) + totalTaskMinutes);
+    // Sort tasks by startHour for proper display
+    const sortedTasks = [...tasks].sort((a, b) => a.startHour - b.startHour);
     
-    let segments = [];
-    // Build segments; for sleep (index 0) add offset and extra minutes if available
-    tasks.forEach((task, idx) => {
-         let duration = task.duration;
-         if(idx === 0) {
-             duration += (offset > 0 ? offset : 0) + (extra > 0 ? extra : 0);
-         }
-         segments.push({
-             label: task.icon + " " + task.name,
-             duration: duration,
-             color: enhancedColors[idx % enhancedColors.length],
-             taskIndex: idx
-         });
-    });
-    
-    // Create status bar segments without adding a separate free segment
-    segments.forEach(seg => {
+    // Create segments for each task
+    sortedTasks.forEach((task, idx) => {
+        // Find the next task that starts later in the day
+        let nextSameDayTask = null;
+        for (let i = 0; i < sortedTasks.length; i++) {
+            if (sortedTasks[i].startHour > task.startHour) {
+                nextSameDayTask = sortedTasks[i];
+                break;
+            }
+        }
+        
+        // If no task follows in the same day, the next task is the first task of the next day
+        const nextTask = nextSameDayTask || sortedTasks[0];
+        
+        // Calculate start and end in minutes
+        const startMinutes = hourToMinutes(task.startHour);
+        let endMinutes;
+        
+        if (nextSameDayTask) {
+            // If there's a next task in the same day, use its start time
+            endMinutes = hourToMinutes(nextSameDayTask.startHour);
+        } else {
+            // If no next task in the same day, this task continues until midnight (24:00)
+            // Then wraps around to the first task of the next day
+            endMinutes = dayMinutes; // Goes until end of day
+        }
+        
+        // Handle case where task spans midnight
+        let width;
+        if (nextSameDayTask) {
+            // Normal case: task duration within same day
+            width = (endMinutes - startMinutes) / dayMinutes * 100;
+        } else {
+            // Task spans from its start time to midnight
+            width = (dayMinutes - startMinutes) / dayMinutes * 100;
+        }
+        
+        // Create the segment
         const segDiv = document.createElement("div");
         segDiv.className = "status-segment";
-        segDiv.style.width = `${(seg.duration / dayMinutes) * 100}%`;
-        segDiv.style.backgroundColor = seg.color;
+        segDiv.style.width = `${width}%`;
+        segDiv.style.backgroundColor = enhancedColors[idx % enhancedColors.length];
         segDiv.style.height = "100%";
         segDiv.style.float = "left";
         segDiv.style.position = "relative";
-        // ...existing code...
-        if (seg.label) {
-            const labelDiv = document.createElement("div");
-            labelDiv.className = "segment-label";
-            labelDiv.innerHTML = seg.label;
-            labelDiv.style.position = "absolute";
-            labelDiv.style.top = "50%";
-            labelDiv.style.left = "50%";
-            labelDiv.style.transform = "translate(-50%, -50%)";
-            labelDiv.style.color = "#fff";
-            labelDiv.style.fontSize = "18px";
-            segDiv.appendChild(labelDiv);
-            segDiv.setAttribute("data-task-index", seg.taskIndex);
-        }
+        
+        // Add label to segment
+        const labelDiv = document.createElement("div");
+        labelDiv.className = "segment-label";
+        labelDiv.innerHTML = `${task.icon} ${task.name} (${formatTime(startMinutes)})`;
+        labelDiv.style.position = "absolute";
+        labelDiv.style.top = "50%";
+        labelDiv.style.left = "50%";
+        labelDiv.style.transform = "translate(-50%, -50%)";
+        labelDiv.style.color = "#fff";
+        labelDiv.style.fontSize = "18px";
+        segDiv.appendChild(labelDiv);
+        segDiv.setAttribute("data-task-index", tasks.indexOf(task)); // Use original index for reference
+        
         statusBar.appendChild(segDiv);
+        
+        // If this is the last task of the day, create an additional segment that spans from midnight to the first task
+        if (!nextSameDayTask) {
+            const firstTaskStartMinutes = hourToMinutes(sortedTasks[0].startHour);
+            const midnightToFirstWidth = firstTaskStartMinutes / dayMinutes * 100;
+            
+            // Only add the overnight segment if there's actually time between midnight and the first task
+            if (midnightToFirstWidth > 0) {
+                const overnightDiv = document.createElement("div");
+                overnightDiv.className = "status-segment";
+                overnightDiv.style.width = `${midnightToFirstWidth}%`;
+                overnightDiv.style.backgroundColor = enhancedColors[idx % enhancedColors.length]; // Same color as parent task
+                overnightDiv.style.height = "100%";
+                overnightDiv.style.float = "left";
+                overnightDiv.style.position = "relative";
+                
+                // Add label to overnight segment (use same task, but indicate it continues overnight)
+                const overnightLabel = document.createElement("div");
+                overnightLabel.className = "segment-label";
+                overnightLabel.innerHTML = `${task.icon} ${task.name} (continues)`;
+                overnightLabel.style.position = "absolute";
+                overnightLabel.style.top = "50%";
+                overnightLabel.style.left = "50%";
+                overnightLabel.style.transform = "translate(-50%, -50%)";
+                overnightLabel.style.color = "#fff";
+                overnightLabel.style.fontSize = "18px";
+                overnightDiv.appendChild(overnightLabel);
+                overnightDiv.setAttribute("data-task-index", tasks.indexOf(task)); // Same index as parent task
+                
+                // Insert at beginning (left side) of status bar
+                statusBar.prepend(overnightDiv);
+            }
+        }
     });
 }
 
@@ -171,25 +250,47 @@ function updateCurrentTaskLabel() {
     currentTaskLabelEl.textContent = currentTask ? currentTask.icon + " " + currentTask.name : "No Task";
 }
 
-// Determine which task is current using the schedule
+// Determine which task is current using start hours
 function getCurrentTask() {
     const now = new Date();
-    const minutesNow = now.getHours() * 60 + now.getMinutes();
-    const offset = calculateTimeOffset();
-    const extra = dayMinutes - ((offset > 0 ? offset : 0) + getTotalTaskMinutes());
-    let current = null;
-    let cumMinutes = 0;
-    tasks.forEach((task, idx) => {
-        let duration = task.duration;
-        if (idx === 0) {
-            duration += (offset > 0 ? offset : 0) + (extra > 0 ? extra : 0);
+    const currentHour = now.getHours() + now.getMinutes() / 60;
+    
+    // Sort tasks by startHour
+    const sortedTasks = [...tasks].sort((a, b) => a.startHour - b.startHour);
+    
+    // Find the task that is currently active
+    for (let i = 0; i < sortedTasks.length; i++) {
+        const task = sortedTasks[i];
+        
+        // Find the next task that starts later in the day
+        let nextSameDayTask = null;
+        for (let j = 0; j < sortedTasks.length; j++) {
+            if (j !== i && sortedTasks[j].startHour > task.startHour) {
+                nextSameDayTask = sortedTasks[j];
+                break;
+            }
         }
-        if (minutesNow >= cumMinutes && minutesNow < cumMinutes + duration) {
-            current = task;
+        
+        const taskStartHour = task.startHour;
+        
+        // If there's a next task in the same day
+        if (nextSameDayTask) {
+            const nextTaskStartHour = nextSameDayTask.startHour;
+            if (currentHour >= taskStartHour && currentHour < nextTaskStartHour) {
+                return task;
+            }
+        } 
+        // If there's no next task in the same day, this task continues until midnight
+        // Then it wraps around and continues from 00:00 until its own start time
+        else {
+            // Tasks with no successor in the same day wrap around midnight
+            if (currentHour >= taskStartHour || currentHour < sortedTasks[0].startHour) {
+                return task;
+            }
         }
-        cumMinutes += duration;
-    });
-    return current;
+    }
+    
+    return null; // Should never reach here if tasks cover the full day
 }
 
 // Highlight current task segment on each update:
@@ -213,17 +314,29 @@ function update() {
     requestAnimationFrame(update);
 }
 
-// Build task duration input fields.
+// Build task start time input fields
 function setupInputs() {
     const tasksInputs = document.getElementById("tasksInputs");
     tasksInputs.innerHTML = "";
+    
+    // Update the header text in the modal
+    document.querySelector('.modalHeader h3').textContent = "Set Task Start Times";
+    document.querySelector('.modalBody p').textContent = "Set the starting time for each task (format: HH:MM, 24-hour)";
+    
     tasks.forEach((task, idx) => {
         const div = document.createElement("div");
         div.className = "task-input";
         div.setAttribute("data-index", idx);
+        
+        // Convert decimal hour to HH:MM format
+        const timeInMinutes = hourToMinutes(task.startHour);
+        const time24Format = formatTime24(timeInMinutes);
+        const timeFormatted = formatTime(timeInMinutes); // 12-hour format for display
+        
         div.innerHTML = `
             <label><span>${task.icon}</span> ${task.name}: </label>
-            <input type="number" value="${task.duration}" data-index="${idx}" min="5" max="1440">
+            <input type="time" value="${time24Format}" data-index="${idx}" class="start-time-input">
+            <span class="time-display">(${timeFormatted})</span>
             <button class="remove-task" data-index="${idx}">Remove</button>
             <button class="move-up" data-index="${idx}">Up</button>
             <button class="move-down" data-index="${idx}">Down</button>
@@ -239,12 +352,24 @@ function setupInputs() {
 
     // Listen for changes on inputs
     tasksInputs.addEventListener("change", (e) => {
-        if(e.target && e.target.tagName === "INPUT"){
+        if(e.target && e.target.classList.contains("start-time-input")){
             const index = e.target.getAttribute("data-index");
-            const newVal = parseFloat(e.target.value);
-            if(!isNaN(newVal) && newVal >= 5){
-                tasks[index].duration = newVal;
+            const timeValue = e.target.value; // Format: HH:MM
+            
+            if(timeValue) {
+                // Convert HH:MM to decimal hours
+                const startHour = timeStringToHours(timeValue);
+                tasks[index].startHour = startHour;
+                
+                // Update the displayed time next to the input
+                const timeFormatted = formatTime(hourToMinutes(startHour));
+                const timeDisplay = e.target.nextElementSibling;
+                if(timeDisplay && timeDisplay.classList.contains("time-display")) {
+                    timeDisplay.textContent = `(${timeFormatted})`;
+                }
+                
                 buildStatusBar();
+                saveTasksToStorage(); // Save tasks to localStorage
             }
         }
     });
@@ -258,6 +383,7 @@ function setupInputs() {
                 setupInputs();
                 buildStatusBar();
                 buildHourMarkers();
+                saveTasksToStorage(); // Save tasks to localStorage
             }
         }
         if(e.target && e.target.classList.contains("move-up")){
@@ -267,6 +393,7 @@ function setupInputs() {
                 setupInputs();
                 buildStatusBar();
                 buildHourMarkers();
+                saveTasksToStorage(); // Save tasks to localStorage
             }
         }
         if(e.target && e.target.classList.contains("move-down")){
@@ -276,6 +403,7 @@ function setupInputs() {
                 setupInputs();
                 buildStatusBar();
                 buildHourMarkers();
+                saveTasksToStorage(); // Save tasks to localStorage
             }
         }
     });
@@ -284,17 +412,25 @@ function setupInputs() {
     addBtn.addEventListener("click", () => {
         const name = prompt("Enter task name:", "New Task");
         if(!name) return;
-        const durationStr = prompt("Enter duration in minutes:", "30");
-        const duration = parseInt(durationStr, 10);
-        if(isNaN(duration) || duration < 5){
-            alert("Invalid duration.");
+        
+        // Prompt for time in HH:MM format
+        const timeStr = prompt("Enter start time (format: HH:MM, 24-hour):", "08:00");
+        
+        // Validate time format
+        if(!timeStr || !timeStr.match(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)) {
+            alert("Invalid time format. Please use HH:MM (24-hour format).");
             return;
         }
+        
+        // Convert HH:MM to decimal hours
+        const startHour = timeStringToHours(timeStr);
+        
         const icon = prompt("Enter an emoji for the task:", "⭐") || "⭐";
-        tasks.push({ name, duration, icon });
+        tasks.push({ name, startHour, icon });
         setupInputs();
         buildStatusBar();
         buildHourMarkers();
+        saveTasksToStorage(); // Save tasks to localStorage
     });
 }
 
@@ -302,3 +438,7 @@ setupInputs();
 buildStatusBar();
 buildHourMarkers();
 update();
+
+window.addEventListener('load', () => {
+    saveTasksToStorage(); // Save tasks to localStorage
+});
