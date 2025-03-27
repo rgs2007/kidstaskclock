@@ -338,8 +338,6 @@ function setupInputs() {
             <input type="time" value="${time24Format}" data-index="${idx}" class="start-time-input">
             <span class="time-display">(${timeFormatted})</span>
             <button class="remove-task" data-index="${idx}">Remove</button>
-            <button class="move-up" data-index="${idx}">Up</button>
-            <button class="move-down" data-index="${idx}">Down</button>
         `;
         tasksInputs.appendChild(div);
     });
@@ -359,6 +357,20 @@ function setupInputs() {
             if(timeValue) {
                 // Convert HH:MM to decimal hours
                 const startHour = timeStringToHours(timeValue);
+                
+                // Validate that no other task has the same start time
+                const isDuplicate = tasks.some((task, idx) => 
+                    idx !== parseInt(index) && Math.abs(task.startHour - startHour) < 0.001
+                );
+                
+                if (isDuplicate) {
+                    alert("Another task already starts at this time. Please choose a different time.");
+                    // Reset to previous value
+                    const previousTime = formatTime24(hourToMinutes(tasks[index].startHour));
+                    e.target.value = previousTime;
+                    return;
+                }
+                
                 tasks[index].startHour = startHour;
                 
                 // Update the displayed time next to the input
@@ -374,32 +386,12 @@ function setupInputs() {
         }
     });
 
-    // Listen for remove and reorder clicks
+    // Listen for remove clicks
     tasksInputs.addEventListener("click", (e) => {
         if(e.target && e.target.classList.contains("remove-task")){
             const index = parseInt(e.target.getAttribute("data-index"));
             if(tasks.length > 1) {
                 tasks.splice(index, 1);
-                setupInputs();
-                buildStatusBar();
-                buildHourMarkers();
-                saveTasksToStorage(); // Save tasks to localStorage
-            }
-        }
-        if(e.target && e.target.classList.contains("move-up")){
-            const index = parseInt(e.target.getAttribute("data-index"));
-            if(index > 0) {
-                [tasks[index - 1], tasks[index]] = [tasks[index], tasks[index - 1]];
-                setupInputs();
-                buildStatusBar();
-                buildHourMarkers();
-                saveTasksToStorage(); // Save tasks to localStorage
-            }
-        }
-        if(e.target && e.target.classList.contains("move-down")){
-            const index = parseInt(e.target.getAttribute("data-index"));
-            if(index < tasks.length - 1) {
-                [tasks[index], tasks[index + 1]] = [tasks[index + 1], tasks[index]];
                 setupInputs();
                 buildStatusBar();
                 buildHourMarkers();
@@ -424,6 +416,13 @@ function setupInputs() {
         
         // Convert HH:MM to decimal hours
         const startHour = timeStringToHours(timeStr);
+        
+        // Validate that no other task has the same start time
+        const isDuplicate = tasks.some(task => Math.abs(task.startHour - startHour) < 0.001);
+        if (isDuplicate) {
+            alert("Another task already starts at this time. Please choose a different time.");
+            return;
+        }
         
         const icon = prompt("Enter an emoji for the task:", "⭐") || "⭐";
         tasks.push({ name, startHour, icon });
