@@ -153,7 +153,7 @@ function buildStatusBar() {
         // Add label to segment
         const labelDiv = document.createElement("div");
         labelDiv.className = "segment-label";
-        labelDiv.innerHTML = `${task.icon} ${task.name} (${formatTime(startMinutes)})`;
+        labelDiv.innerHTML = `${task.icon} ${task.name}`;
         labelDiv.style.position = "absolute";
         labelDiv.style.top = "50%";
         labelDiv.style.left = "50%";
@@ -246,7 +246,7 @@ function updateTimeDisplay() {
 function updateCurrentTaskLabel() {
     const currentTask = getCurrentTask();
     const currentTaskLabelEl = document.getElementById("currentTaskLabel");
-    // Update label text depending on current task
+    // Update label text depending on current task - removed date/time
     currentTaskLabelEl.textContent = currentTask ? currentTask.icon + " " + currentTask.name : "No Task";
 }
 
