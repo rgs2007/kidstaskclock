@@ -1,8 +1,8 @@
-@keyframes gradientAnimation {
+/* @keyframes gradientAnimation {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
-}
+} */
 
 * {
     margin: 0;
@@ -13,7 +13,7 @@
 body {
     background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
     background-size: 400% 400%;
-    animation: gradientAnimation 15s ease infinite;
+    /* animation: gradientAnimation 15s ease infinite; */
     color: #333;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
@@ -22,6 +22,7 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100vh; /* Ensure the body fits the viewport height */
 }
 
 /* Draggable elements */
@@ -91,6 +92,7 @@ body {
     justify-content: center;
     align-items: center;
     overflow: hidden;
+    height: 100vh; /* Ensure the clock container fits the viewport height */
 }
 
 /* Remove circular clock view styles */
@@ -98,16 +100,7 @@ body {
 /* Digital clock display */
 #digitalClock {
     position: fixed;
-    bottom: 30px;
-    left: 50%;
     transform: translateX(-50%);
-    font-family: 'Segoe UI', sans-serif;
-    font-size: 3rem;
-    font-weight: 300;
-    color: #fff;
-    background-color: rgba(0, 0, 0, 0.3);
-    padding: 5px 20px;
-    border-radius: 15px;
     z-index: 100;
     min-width: 300px;
     text-align: center;
@@ -184,7 +177,7 @@ body {
     max-width: 800px; /* Increased from 500px to 800px for more width */
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-    animation: modalAppear 0.3s ease;
+    /* animation: modalAppear 0.3s ease; */
 }
 
 @keyframes modalAppear {
@@ -359,17 +352,21 @@ body {
     padding: 0;
     width: 100%;
     height: 100vh; /* Use full viewport height */
+    overflow-x: auto; /* Enable horizontal scrolling */
+    overflow-y: hidden;
+    white-space: nowrap; /* Prevent line breaks within the div */
 }
 
 .progress-container {
-    width: 100%;
+    width: 300%;
     height: 100vh; /* Fill the screen */
     background: rgba(255, 255, 255, 0.15);
     border-radius: 15px;
     backdrop-filter: blur(8px);
     box-shadow: 0 8px 32px rgba(31, 38, 135, 0.2);
     position: relative;
-    overflow: visible; /* Changed from hidden so markers show */
+    overflow-x: visible; /* Changed from hidden so markers show */
+    overflow-y: hidden; /* Hide vertical overflow */
 }
 
 /* Make the status bar fill the container */
@@ -381,6 +378,7 @@ body {
     height: 100%;
     border-radius: 0;
     overflow: hidden;
+    display: inline-block; 
 }
 
 /* Hour markers overlay */

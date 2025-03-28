@@ -8,10 +8,8 @@
 </head>
 <body>
 	<div id="clockContainer">
-		 <!-- Removed circular clock view -->
 		<div id="progressBarClockView" class="clock-view active">
 			<div class="progress-container">
-				<!-- The progress bar and hour markers will be inserted here by JS -->
 				<div id="hourMarkers"></div>
 				<div id="statusBar"></div>
 				<div id="currentTimeMarker"></div>
@@ -19,19 +17,22 @@
 		</div>
 		
 		 <!-- New current task label at the top -->
-		<div id="currentTaskLabel" class="draggable time-display" style="top: 30px; left: 50%; transform: translateX(-50%);">
+		<div id="currentTaskLabel" class="draggable time-display" style="top: 30px; left: 40%; transform: translateX(-50%);">
 			<!-- Initial text placeholder -->
 			Current Task
 		</div>
 		
 		<!-- Common elements -->
-		<div id="digitalClock" class="draggable time-display">12:00 PM</div>
+		<div id="digitalClock" class="draggable time-display" style="top: 30px; left: 58%; transform: translateX(-50%);">12:00 PM</div>
 		<!-- Removed current task indicator -->
 	</div>
 
 	<div id="controlPanel">
 		<button id="settingsButton" class="control-button" aria-label="Manage Tasks">📋</button>
 		<button id="fullscreenButton" class="control-button" aria-label="Fullscreen">⤢</button>
+		<!-- Add toggle buttons -->
+		<button id="toggleClockButton" class="control-button" aria-label="Toggle Digital Clock">🕒</button>
+		<button id="toggleTaskButton" class="control-button" aria-label="Toggle Current Task">📌</button>
 	</div>
 
 	<div id="settingsModal">
@@ -50,6 +51,7 @@
 		</div>
 	</div>
 	
+	<script src="settings.js"></script>
 	<script src="script.js"></script>
 	<script>
 		// Modal controls
