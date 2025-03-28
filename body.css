@@ -355,6 +355,9 @@ body {
     overflow-x: auto; /* Enable horizontal scrolling */
     overflow-y: hidden;
     white-space: nowrap; /* Prevent line breaks within the div */
+    -webkit-overflow-scrolling: touch; /* Enable momentum scrolling on iOS */
+    scrollbar-width: thin; /* For Firefox */
+    touch-action: pan-x; /* Allow horizontal touch gestures */
 }
 
 .progress-container {
@@ -367,6 +370,20 @@ body {
     position: relative;
     overflow-x: visible; /* Changed from hidden so markers show */
     overflow-y: hidden; /* Hide vertical overflow */
+}
+
+/* Make scrollbar look nicer on devices that show it */
+#progressBarClockView::-webkit-scrollbar {
+    height: 6px; /* Height of horizontal scrollbar */
+}
+
+#progressBarClockView::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3); /* Scrollbar color */
+    border-radius: 10px;
+}
+
+#progressBarClockView::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1); /* Track color */
 }
 
 /* Make the status bar fill the container */

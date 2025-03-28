@@ -1,6 +1,11 @@
 // Set initial tasks from settings or load from storage
 let tasks = [...KTC_SETTINGS.defaultTasks];
 
+// Touch scroll variables
+let touchStartX = 0;
+let touchEndX = 0;
+let initialScrollLeft = 0;
+
 // Function to sort tasks by startHour directly in the tasks array
 function sortTasks() {
     tasks.sort((a, b) => a.startHour - b.startHour);
@@ -80,6 +85,38 @@ function findNextTask(task, sortedTasks) {
         }
     }
     return null;
+}
+
+// Handle touch events for scrolling
+function initTouchScrolling() {
+    const progressBarView = document.getElementById("progressBarClockView");
+    
+    progressBarView.addEventListener('touchstart', function(e) {
+        // Store the initial touch position and scroll position
+        touchStartX = e.touches[0].clientX;
+        initialScrollLeft = progressBarView.scrollLeft;
+    }, { passive: true });
+    
+    progressBarView.addEventListener('touchmove', function(e) {
+        if (!touchStartX) return;
+        
+        // Calculate how far the finger has moved
+        const touchCurrentX = e.touches[0].clientX;
+        const deltaX = touchStartX - touchCurrentX;
+        
+        // Scroll the container based on finger movement
+        progressBarView.scrollLeft = initialScrollLeft + deltaX;
+        
+        // Prevent default only for horizontal swipes to avoid interfering with vertical scrolling
+        if (Math.abs(deltaX) > 10) {
+            // We're using non-passive listener so we can prevent default if needed
+        }
+    }, { passive: false });
+    
+    progressBarView.addEventListener('touchend', function() {
+        // Reset variables
+        touchStartX = 0;
+    }, { passive: true });
 }
 
 // Build the status bar segments with labels for each task
@@ -455,6 +492,7 @@ sortTasks();
 setupInputs();
 buildStatusBar();
 buildHourMarkers();
+initTouchScrolling(); // Initialize touch scrolling
 update();
 
 // Set up automatic centering of the time marker every 30 seconds
