@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content="Kids Watch - Collecting emails for product interest" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kids Watch - Coming Soon</title>
+
+  <style>
+    /* Basic CSS Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: Arial, sans-serif;
+      background: #fce8d8;
+      color: #333;
+    }
+
+    /* Container using Flexbox to center content vertically on smaller screens */
+    .container {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      text-align: center;
+      padding: 1.5rem;
+      background-color: #fffaf6;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    header h1 {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+      color: #444;
+    }
+
+    header p {
+      font-size: 1.1rem;
+      color: #666;
+    }
+
+    /* Main content wrapper */
+    .content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .hero img {
+      max-width: 240px;
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h2 {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      max-width: 600px;
+      margin: 0 auto;
+      color: #555;
+    }
+
+    .signup-section {
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .signup-section form {
+      max-width: 400px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .signup-section input[type="email"] {
+      padding: 0.8rem;
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .signup-section input[type="email"]:focus {
+      border-color: #ffbf80;
+    }
+
+    .signup-section button[type="submit"] {
+      cursor: pointer;
+      background-color: #ffa64d;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      transition: background-color 0.2s;
+    }
+
+    .signup-section button[type="submit"]:hover {
+      background-color: #ff8c1a;
+    }
+
+    .footer {
+      background-color: #fffaf6;
+      text-align: center;
+      padding: 1rem;
+      color: #888;
+      font-size: 0.9rem;
+    }
+
+    /* Media Query for small screens (e.g., low viewport height) */
+    @media (max-height: 600px) {
+      .hero {
+        margin-bottom: 1rem;
+      }
+      .signup-section {
+        padding: 0.5rem;
+      }
+      .signup-section form {
+        margin-top: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <h1>Kids Watch</h1>
+      <p>The playful smartwatch that helps kids manage their daily routine</p>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+      <!-- HERO SECTION WITH PRODUCT IMAGE -->
+      <div class="hero">
+        <!-- Make sure the src points to the correct image file -->
+        <img src="kidswatch2.png" alt="Kids Smartwatch Product Image" />
+        <h2>Fun. Engaging. Helpful.</h2>
+        <p>
+          Our new Kids Watch helps children keep track of their important tasks while having fun along the way. Sign up to be the first to know when it launches!
+        </p>
+      </div>
+
+      <!-- SIGNUP FORM -->
+      <div class="signup-section">
+        <form id="email-form">
+          <input 
+            type="email" 
+            name="email" 
+            id="email" 
+            placeholder="Enter your email address" 
+            required 
+          />
+          <button type="submit">Notify Me</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer">
+      <p>&copy; 2025 Kids Watch. All rights reserved.</p>
+    </div>
+  </div>
+
+  <script>
+    // 1) Your Apps Script Web App URL:
+    const scriptURL = 'YOUR_SCRIPT_URL_HERE';
+
+    // 2) Grab the form element
+    const form = document.getElementById('email-form');
+
+    // 3) Handle form submission
+    form.addEventListener('submit', e => {
+      e.preventDefault();
+
+      const emailInput = document.getElementById('email');
+      const emailValue = emailInput.value.trim();
+      if (!emailValue) {
+        alert("Please enter a valid email address.");
+        return;
+      }
+
+      fetch(scriptURL, {
+        method: 'POST',
+        body: new FormData(form)
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert("Thank you! We'll keep you updated.");
+        emailInput.value = '';
+      })
+      .catch(error => {
+        console.error('Error!', error);
+        alert("Oops! Something went wrong. Please try again later.");
+      });
+    });
+  </script>
+</body>
+</html>

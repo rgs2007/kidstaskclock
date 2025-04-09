@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kids Watch – FlowingLlama</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background-color: #FFE7CB;
+      color: #333;
+    }
+
+    /* Header with logo */
+    header {
+      display: flex;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: #fff8ed;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    header img {
+      height: 48px;
+      width: auto;
+    }
+    header a {
+      text-decoration: none;
+    }
+
+    /* Hero Layout */
+    .hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+      max-width: 1200px;
+      margin: auto;
+      gap: 2rem;
+    }
+
+    .hero img.product {
+      flex: 1;
+      max-width: 100%;
+      max-height: 60vh;
+      height: auto;
+      border-radius: 8px;
+    }
+
+    .text-content {
+      flex: 1;
+      max-width: 600px;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 0.5em;
+    }
+
+    p {
+      font-size: 1.1em;
+      line-height: 1.4;
+      margin-bottom: 1.2em;
+    }
+
+    form {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    form input[type="email"] {
+      flex: 1 1 250px;
+      padding: 0.6rem;
+      font-size: 1em;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+    }
+
+    form button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1em;
+      background-color: #FECBA5;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #000;
+    }
+
+    form button:hover {
+      background-color: #FDB08E;
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        flex-direction: column;
+        align-items: center;
+      }
+      .hero img.product {
+        margin-bottom: 1.5rem;
+      }
+      .text-content {
+        text-align: center;
+      }
+      form {
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Logo Header -->
+  <header>
+    <a href="#">
+      <img src="ChatGPT Image Apr 9, 2025, 01_46_29 PM.png" alt="FlowingLlama company logo - Solutions for Better Lives" />
+    </a>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <img class="product" src="kidswatch2.png" alt="Kids Watch product image" />
+    <div class="text-content">
+      <h1>Kids Watch</h1>
+      <p>The Kids Watch is a fun and educational smartwatch designed for children. It features a colorful interface, parental controls, and interactive games to make learning time exciting. Stay updated on its release by joining our email list below!</p>
+      <form id="signup-form">
+        <input id="emailField" name="Email" type="email" placeholder="Enter your email" required />
+        <button type="submit">Sign Up</button>
+      </form>
+    </div>
+  </section>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; // Replace with your real URL
+    const form = document.getElementById("signup-form");
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      fetch(scriptURL, { method: "POST", body: new FormData(form) })
+        .then(response => {
+          alert("Thank you! Your email has been submitted.");
+          form.reset();
+        })
+        .catch(error => {
+          console.error("Error!", error);
+          alert("There was an error submitting the form.");
+        });
+    });
+  </script>
+
+</body>
+</html>
