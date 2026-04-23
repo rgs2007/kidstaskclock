@@ -8,7 +8,7 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$GitHubRepo,
 
-    [string]$Branch = "main",
+    [string[]]$Branches = @("main", "develop"),
 
     [string]$RoleName = "kidstaskclock-github-actions-role",
 
@@ -34,7 +34,38 @@ function Invoke-AwsCli {
 
 $providerUrl = "https://token.actions.githubusercontent.com"
 $providerArn = "arn:aws:iam::$AwsAccountId`:oidc-provider/token.actions.githubusercontent.com"
-$repoSubject = "repo:$GitHubOwner/$GitHubRepo`:ref:refs/heads/$Branch"
+
+# Build subject conditions for multiple branches
+$subjectConditions = @()
+foreach ($branch in $Branches) {
+    $subjectConditions += "repo:$GitHubOwner/$GitHubRepo`:ref:refs/heads/$branch"
+}
+
+# Create trust policy with StringLike to match multiple branches
+$trustPolicy = @"
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Principal": {
+        "Federated": "$providerArn"
+      },
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": [
+            $($subjectConditions | ForEach-Object { "`"$_`"" } | Join-String -Separator ', ')
+          ]
+        }
+      }
+    }
+  ]
+}
+"@
 
 Write-Host "Checking for GitHub OIDC provider..."
 $providerExists = $false
@@ -96,27 +127,6 @@ $publicAccessBlockConfiguration = @"
   "IgnorePublicAcls": false,
   "BlockPublicPolicy": false,
   "RestrictPublicBuckets": false
-}
-"@
-
-$trustPolicy = @"
-{
-  "Version": "2012-10-17",
-  "Statement": [
-    {
-      "Effect": "Allow",
-      "Principal": {
-        "Federated": "$providerArn"
-      },
-      "Action": "sts:AssumeRoleWithWebIdentity",
-      "Condition": {
-        "StringEquals": {
-          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com",
-          "token.actions.githubusercontent.com:sub": "$repoSubject"
-        }
-      }
-    }
-  ]
 }
 "@
 

@@ -10,6 +10,7 @@ permissions:
 env:
   AWS_REGION: ${{ vars.AWS_REGION }}
   SITE_BUCKET_NAME: ${{ vars.SITE_BUCKET_NAME }}
+  API_ENDPOINT_URL: ${{ vars.API_ENDPOINT_URL }}
 
 jobs:
   deploy:
@@ -36,6 +37,17 @@ jobs:
         run: |
           aws s3api head-bucket --bucket "${SITE_BUCKET_NAME}"
 
+      - name: Inject API endpoint into HTML
+        run: |
+          # Create a temporary config file with API endpoint
+          cat > /tmp/api-config.js << 'EOF'
+          // API Configuration - injected during deployment
+          const API_ENDPOINT = "${{ env.API_ENDPOINT_URL }}";
+          EOF
+          
+          # Prepend API config to script.js
+          cat /tmp/api-config.js src/script.js > src/script.js.tmp && mv src/script.js.tmp src/script.js
+
       - name: Upload site files
         run: |
           aws s3 sync src/ "s3://${SITE_BUCKET_NAME}" \
@@ -51,5 +63,12 @@ jobs:
       - name: Deployment summary
         run: |
           SITE_URL="http://${SITE_BUCKET_NAME}.s3-website-${AWS_REGION}.amazonaws.com"
-          echo "Deployed to ${SITE_URL}"
+          echo "========================================" 
+          echo "✓ Deployment Complete"
+          echo "========================================"
+          echo ""
+          echo "Website URL: ${SITE_URL}"
+          echo "API Endpoint: ${API_ENDPOINT_URL}"
+          echo ""
           echo "Site URL: ${SITE_URL}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "API Endpoint: ${API_ENDPOINT_URL}" >> "${GITHUB_STEP_SUMMARY}"

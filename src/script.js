@@ -1,18 +1,76 @@
-// Default tasks
-let tasks = [
-	{ name: "Sleep", duration: 200, icon: "😴" },
-	{ name: "Dress", duration: 30, icon: "👚" },
-	{ name: "Brush", duration: 15, icon: "🪥" },
-	{ name: "Comb Hair", duration: 15, icon: "💇" },
-	{ name: "Breakfast", duration: 30, icon: "🥞" },
-	{ name: "School", duration: 360, icon: "🏫" },
-	{ name: "Play Time", duration: 60, icon: "🎮" },
-	{ name: "Dinner", duration: 30, icon: "🍽️" },
-	{ name: "Quiet Time", duration: 60, icon: "😌" },
-	{ name: "Shower", duration: 15, icon: "🚿" },
-	{ name: "Book", duration: 45, icon: "📚" },
-	{ name: "Sleep", duration: 280, icon: "😴" }
-];
+// API Configuration - injected during deployment
+// If not injected, defaults to empty string for local development
+let API_ENDPOINT = typeof API_ENDPOINT !== 'undefined' ? API_ENDPOINT : '';
+
+// Fallback/default configuration in case API is unavailable
+const DEFAULT_CONFIG = {
+	tasks: [
+		{ name: "Sleep", duration: 200, icon: "😴" },
+		{ name: "Dress", duration: 30, icon: "👚" },
+		{ name: "Brush", duration: 15, icon: "🪥" },
+		{ name: "Comb Hair", duration: 15, icon: "💇" },
+		{ name: "Breakfast", duration: 30, icon: "🥞" },
+		{ name: "School", duration: 360, icon: "🏫" },
+		{ name: "Play Time", duration: 60, icon: "🎮" },
+		{ name: "Dinner", duration: 30, icon: "🍽️" },
+		{ name: "Quiet Time", duration: 60, icon: "😌" },
+		{ name: "Shower", duration: 15, icon: "🚿" },
+		{ name: "Book", duration: 45, icon: "📚" },
+		{ name: "Sleep", duration: 280, icon: "😴" }
+	],
+	colors: [
+		"#FF9AA2", "#FFB7B2", "#FFDAC1", "#E2F0CB", "#B5EAD7", 
+		"#C7CEEA", "#F2D4D7", "#D4F2D2", "#D4F2EA", "#D4E2F2",
+		"#E2D4F2", "#F2D4F0"
+	],
+	dayMinutes: 1440,
+	schoolStartTime: "07:50"
+};
+
+// Initialize global variables (will be populated from API or defaults)
+let tasks = [];
+let enhancedColors = [];
+let dayMinutes = 1440;
+let schoolStartTime = "07:50";
+
+// Fetch configuration from API with fallback to defaults
+async function loadConfiguration() {
+	console.log('Loading configuration...');
+	
+	if (!API_ENDPOINT) {
+		console.log('No API endpoint configured, using default configuration');
+		applyConfiguration(DEFAULT_CONFIG);
+		return;
+	}
+
+	try {
+		console.log(`Fetching configuration from API: ${API_ENDPOINT}/api/config`);
+		const response = await fetch(`${API_ENDPOINT}/api/config`);
+		
+		if (!response.ok) {
+			throw new Error(`API returned status ${response.status}`);
+		}
+		
+		const config = await response.json();
+		console.log('✓ Configuration loaded from API', config);
+		applyConfiguration(config);
+	} catch (error) {
+		console.error('Failed to load configuration from API, using defaults:', error);
+		applyConfiguration(DEFAULT_CONFIG);
+	}
+}
+
+// Apply configuration to global variables
+function applyConfiguration(config) {
+	tasks = config.tasks || DEFAULT_CONFIG.tasks;
+	enhancedColors = config.colors || DEFAULT_CONFIG.colors;
+	dayMinutes = config.dayMinutes || DEFAULT_CONFIG.dayMinutes;
+	schoolStartTime = config.schoolStartTime || DEFAULT_CONFIG.schoolStartTime;
+	console.log(`✓ Configuration applied: ${tasks.length} tasks, school starts at ${schoolStartTime}`);
+}
+
+// Default tasks (kept for backward compatibility, will be replaced at runtime)
+let legacyTasks = DEFAULT_CONFIG.tasks;
 
 const pastelColors = [
 	"#FFB3BA", "#FFDFBA", "#FFFFBA", "#BAFFC9", "#BAE1FF",
@@ -20,12 +78,8 @@ const pastelColors = [
 	"#E1D1FC"
 ];
 
-// Enhanced colors - softer, complementary palette
-const enhancedColors = [
-    "#FF9AA2", "#FFB7B2", "#FFDAC1", "#E2F0CB", "#B5EAD7", 
-    "#C7CEEA", "#F2D4D7", "#D4F2D2", "#D4F2EA", "#D4E2F2",
-    "#E2D4F2", "#F2D4F0"
-];
+// Enhanced colors - softer, complementary palette (will be overridden at runtime)
+const defaultEnhancedColors = DEFAULT_CONFIG.colors;
 
 // DOM Elements - simplified references
 const digitalClockEl = document.getElementById("digitalClock");
@@ -298,7 +352,20 @@ function setupInputs() {
     });
 }
 
-setupInputs();
-buildStatusBar();
-buildHourMarkers();
-update();
+// Initialize application after configuration is loaded
+async function initializeApp() {
+    console.log('Initializing application...');
+    await loadConfiguration();
+    setupInputs();
+    buildStatusBar();
+    buildHourMarkers();
+    update();
+    console.log('✓ Application initialized');
+}
+
+// Start the app when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeApp);
+} else {
+    initializeApp();
+}
