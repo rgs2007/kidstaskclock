@@ -1,14 +1,6 @@
 name: Deploy to AWS
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - index.html
-      - body.css
-      - script.js
-      - .github/workflows/deploy-aws.yml
   workflow_dispatch:
 
 permissions:
@@ -46,15 +38,13 @@ jobs:
 
       - name: Upload site files
         run: |
-          mkdir -p deploy
-          cp index.html body.css script.js deploy/
-          aws s3 sync deploy/ "s3://${SITE_BUCKET_NAME}" \
+          aws s3 sync src/ "s3://${SITE_BUCKET_NAME}" \
             --delete \
             --exact-timestamps
 
       - name: Set content type for HTML entry point
         run: |
-          aws s3 cp index.html "s3://${SITE_BUCKET_NAME}/index.html" \
+          aws s3 cp src/index.html "s3://${SITE_BUCKET_NAME}/index.html" \
             --content-type "text/html; charset=utf-8" \
             --metadata-directive REPLACE
 

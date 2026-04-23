@@ -15,7 +15,7 @@ This repo now includes an AWS deployment pipeline for the static site:
 The pipeline deploys this site to:
 
 - An S3 bucket configured for static website hosting
-- A GitHub Actions workflow that uploads the site files on every push to `main`
+- A GitHub Actions workflow that uploads everything inside `src/` on every push to `main`
 
 ## One-time setup
 
@@ -54,7 +54,7 @@ Notes:
 When you push to `main` or run the workflow manually:
 
 1. GitHub Actions assumes the AWS IAM role using OIDC.
-2. The workflow syncs the site files to the S3 website bucket.
+2. The workflow syncs the contents of `src/` to the S3 website bucket.
 3. The updated files are immediately available on the S3 website endpoint.
 
 ## First deployment
