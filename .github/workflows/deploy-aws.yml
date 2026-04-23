@@ -1,0 +1,65 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - index.html
+      - body.css
+      - script.js
+      - .github/workflows/deploy-aws.yml
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: ${{ vars.AWS_REGION }}
+  SITE_BUCKET_NAME: ${{ vars.SITE_BUCKET_NAME }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check required configuration
+        run: |
+          test -n "${AWS_REGION}" || { echo "Missing repository variable AWS_REGION"; exit 1; }
+          test -n "${SITE_BUCKET_NAME}" || { echo "Missing repository variable SITE_BUCKET_NAME"; exit 1; }
+          test -n "${{ secrets.AWS_ROLE_ARN }}" || { echo "Missing repository secret AWS_ROLE_ARN"; exit 1; }
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: kidstaskclock-deploy
+
+      - name: Confirm bucket exists
+        run: |
+          aws s3api head-bucket --bucket "${SITE_BUCKET_NAME}"
+
+      - name: Upload site files
+        run: |
+          mkdir -p deploy
+          cp index.html body.css script.js deploy/
+          aws s3 sync deploy/ "s3://${SITE_BUCKET_NAME}" \
+            --delete \
+            --exact-timestamps
+
+      - name: Set content type for HTML entry point
+        run: |
+          aws s3 cp index.html "s3://${SITE_BUCKET_NAME}/index.html" \
+            --content-type "text/html; charset=utf-8" \
+            --metadata-directive REPLACE
+
+      - name: Deployment summary
+        run: |
+          SITE_URL="http://${SITE_BUCKET_NAME}.s3-website-${AWS_REGION}.amazonaws.com"
+          echo "Deployed to ${SITE_URL}"
+          echo "Site URL: ${SITE_URL}" >> "${GITHUB_STEP_SUMMARY}"
